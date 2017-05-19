@@ -49,6 +49,11 @@ package example
 
 import "github.com/iafan/agenda"
 
+// Sum is the function we are testing
+func Sum(a int, b int) int {
+    return a + b
+}
+
 // TestSum is a agenda.Test-compatible type
 // that holds input and output data for the test,
 // and does the computation and serialization
@@ -72,7 +77,7 @@ func (t *TestSum) UnmarshalInput(data []byte) error {
 // one just need to run the business logic
 // and store the output internally.
 func (t *TestSum) Run() error {
-    t.output.Result = t.input.A + t.input.B
+    t.output.Result = Sum(t.input.A, t.input.B)
     return nil
 }
 
