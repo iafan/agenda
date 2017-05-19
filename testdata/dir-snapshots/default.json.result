@@ -1,0 +1,38 @@
+[
+	{
+		"path": "testdata/01/default/1.json",
+		"size": 19
+	},
+	{
+		"path": "testdata/01/default/1.json.result",
+		"size": 105
+	},
+	{
+		"path": "testdata/01/default/2.json",
+		"size": 31
+	},
+	{
+		"path": "testdata/01/default/2.json.result",
+		"size": 136
+	},
+	{
+		"path": "testdata/01/default/3.json",
+		"size": 20
+	},
+	{
+		"path": "testdata/01/default/3.json.result",
+		"size": 110
+	},
+	{
+		"path": "testdata/01/default/4.json",
+		"size": 20
+	},
+	{
+		"path": "testdata/01/default/4.json.result",
+		"size": 110
+	},
+	{
+		"path": "testdata/01/default/5.json.ignored",
+		"size": 19
+	}
+]

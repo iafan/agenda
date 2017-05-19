@@ -1,0 +1,30 @@
+[
+	{
+		"path": "testdata/01/custom-file-result-suffix/1.in",
+		"size": 19
+	},
+	{
+		"path": "testdata/01/custom-file-result-suffix/1.in.out",
+		"size": 105
+	},
+	{
+		"path": "testdata/01/custom-file-result-suffix/2.in",
+		"size": 31
+	},
+	{
+		"path": "testdata/01/custom-file-result-suffix/2.in.out",
+		"size": 136
+	},
+	{
+		"path": "testdata/01/custom-file-result-suffix/3.in",
+		"size": 20
+	},
+	{
+		"path": "testdata/01/custom-file-result-suffix/3.in.out",
+		"size": 110
+	},
+	{
+		"path": "testdata/01/custom-file-result-suffix/4.inx",
+		"size": 20
+	}
+]
