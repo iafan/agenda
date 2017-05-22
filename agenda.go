@@ -68,7 +68,7 @@ type optionSet struct {
 }
 
 // option is a type of the function that can modify
-// one or more of the options in the Options structure.
+// one or more of the options in the optionSet structure.
 type option func(options *optionSet)
 
 // FileSuffix allows you to set the suffix of the main test
@@ -216,7 +216,7 @@ func Run(t *testing.T, dir string, test Test, options ...option) {
 }
 
 // processFile is an internal function that deals with one source test file at a time
-func processFile(t *testing.T, path string, test Test, opt *Options) {
+func processFile(t *testing.T, path string, test Test, opt *optionSet) {
 	var referenceOutput []byte
 
 	var resultPath = path + opt.resultSuffix
