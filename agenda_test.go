@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-// test01 is a sample test calback function
+// test01 is a sample test callback function
 // that uses JSON to store both input and output data
 func test01(path string, data []byte) ([]byte, error) {
 	in := struct {
@@ -60,7 +60,7 @@ func Test01RunWithCustomFileSuffix(t *testing.T) {
 }
 
 // Test01RunWithCustomFileAndResultSuffix runs tests with
-// custom file suffix anmd custom result file suffix:
+// custom file suffix and custom result file suffix:
 // for each file ending with '.in' there will be a '.in.out' file
 // with serialized results
 func Test01RunWithCustomFileAndResultSuffix(t *testing.T) {
