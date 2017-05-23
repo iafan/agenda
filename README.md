@@ -1,6 +1,10 @@
 Agenda (Auto-GENerated DAta) Testing in Go
 ==========================================
 
+[![build status](https://travis-ci.org/iafan/agenda.svg)](https://travis-ci.org/iafan/agenda)
+[![documentation](https://godoc.org/github.com/iafan/agenda?status.svg)](http://godoc.org/github.com/iafan/agenda)
+[![report card](https://goreportcard.com/badge/github.com/iafan/agenda)](https://goreportcard.com/report/github.com/iafan/agenda)
+
 Agenda testing is an approach where you store your tests in external data files
 (usually JSON), and the same test infrastructure can be used to generate
 your reference output data files (in initialization mode), or to compare

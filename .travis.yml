@@ -1,0 +1,10 @@
+language: go
+go_import_path: github.com/iafan/agenda
+go:
+  - 1.6.x
+  - 1.7.x
+  - 1.8.x
+  - tip
+
+script:
+  - go test -v ./...
