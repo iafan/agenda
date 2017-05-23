@@ -54,44 +54,31 @@ func Sum(a int, b int) int {
     return a + b
 }
 
-// TestSum is a agenda.Test-compatible type
-// that holds input and output data for the test,
-// and does the computation and serialization
-type TestSum struct {
-    input struct {
-        A int `json:"a"`
-        B int `json:"b"`
-    }
-    output struct {
-        Result int `json:"result"`
-    }
-}
+// TestSum is the test for Sum()
+func TestSum(t *testing.T) {
+    agenda.Run(t, "testdata/sum", func(path string, data []byte) ([]byte, error) {
+        // input data structure
+        in := struct {
+            A int `json:"a"`
+            B int `json:"b"`
+        }{}
 
-// UnmarshalInput is called to unmarshal raw bytes
-// from the external test file into test input structure.
-func (t *TestSum) UnmarshalInput(data []byte) error {
-    return json.Unmarshal(data, &t.input)
-}
+        // output data structure
+        out := struct {
+            Result int `json:"result"`
+        }{}
 
-// Run executes the actual test. Note there's no assertion here;
-// one just need to run the business logic
-// and store the output internally.
-func (t *TestSum) Run() error {
-    t.output.Result = Sum(t.input.A, t.input.B)
-    return nil
-}
+        // deserialize provided input data
+        if err := json.Unmarshal(data, &in); err != nil {
+            return nil, err
+        }
 
-// MarshalOutput serializes output to raw bytes
-// suitable for saving into file and for comparison.
-func (t *TestSum) MarshalOutput() ([]byte, error) {
-    return json.Marshal(t.output)
-}
+        // run the test and populate output data structure
+        out.Result = Sum(in.A, in.B)
 
-// The actual test executed by `go test`;
-// agenda.Run() will scan `testdata/sum` directory
-// for .json files, and run test for each of them.
-func TestSumWithAgenda(t *testing.T) {
-    agenda.Run(t, "testdata/sum", &TestSum{})
+        // return serialized output data
+        return json.Marshal(out)
+    })
 }
 ```
 

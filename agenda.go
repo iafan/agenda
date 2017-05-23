@@ -37,25 +37,11 @@ import (
 	"testing"
 )
 
-// Test defines the interface of an agenda test. It has three methods:
-//
-// - UnmarshalInput() takes raw bytes and populates internal data structure
-// with input parameters for the test; it should return an error if there was a problem
-// unmarshaling the data.
-//
-// - Run() runs the actual test against input data and stores result internally;
-// it should return an error only if there was a problem running the supporting
-// test code; if the code you're testing returns an error, and you want to capture
-// and test such errors, they need to be placed in the internal fields and then
-// marshaled in MarshalOutput().
-//
-// - MarshalOutput() serializes internal result data into raw bytes;
-// it should return an error in case marshaling fails.
-type Test interface {
-	UnmarshalInput(data []byte) error
-	Run() error
-	MarshalOutput() ([]byte, error)
-}
+// Test defines the callback function of an agenda test, which takes raw bytes
+// (the contents of the test data file), de-serializes the input data
+// and runs the test against it, then serializes the output and returns it, along with
+// the error in case the supporting test code encountered an unexpected behavior.
+type Test func(path string, data []byte) ([]byte, error)
 
 // optionSet is an internal structure that contains all the
 // computed options before the tests are run with Run().
@@ -77,7 +63,7 @@ type option func(options *optionSet)
 // Default: ".json"
 //
 // Example:
-// agenda.Run(t, "./testdata/mytest", agenda.FileSuffix(".rawdata"))
+// agenda.Run(t, "./testdata/mytest", testFunc, agenda.FileSuffix(".rawdata"))
 func FileSuffix(suffix string) option {
 	return func(o *optionSet) {
 		o.fileSuffix = suffix
@@ -90,7 +76,7 @@ func FileSuffix(suffix string) option {
 // Default: ".result"
 //
 // Example:
-// agenda.Run(t, "./testdata/mytest", agenda.ResultSuffix(".out"))
+// agenda.Run(t, "./testdata/mytest", testFunc, agenda.ResultSuffix(".out"))
 func ResultSuffix(suffix string) option {
 	return func(o *optionSet) {
 		o.resultSuffix = suffix
@@ -107,50 +93,38 @@ func ResultSuffix(suffix string) option {
 // your agenda tests, and `go test` to tun the tests in regular mode.
 //
 // Example:
-// agenda.Run(t, "./testdata/mytest", agenda.InitMode(os.Getenv("INIT_TEST") != ""))
+// agenda.Run(t, "./testdata/mytest", testFunc, agenda.InitMode(os.Getenv("INIT_TEST") != ""))
 func InitMode(enabled bool) option {
 	return func(o *optionSet) {
 		o.initMode = enabled
 	}
 }
 
-// Run executes an agenda test (`test`) against all input data files
+// Run executes an agenda test function (`test`) against all input data files
 // in the specified directory `dir`. Directory can be relative to the directory
 // you run the tests from. One or more `option`s allow you to control the behavior
 // of the tests.
 //
 // Example:
 //
-//     // TestSum satisfies `agenda.Test` interface and stores input/output data
+//		agenda.Run(t, "testdata/sum", func(path string, data []byte) ([]byte, error) {
+//			in := struct {
+//				A int `json:"a"`
+//				B int `json:"b"`
+//			}{}
 //
-//     type TestSum struct {
-//         input struct {
-//             A int `json:"a"`
-//             B int `json:"b"`
-//         }
-//         output struct {
-//             Result int `json:"result"`
-//         }
-//     }
+//			out := struct {
+//				Result int `json:"result"`
+//			}{}
 //
-//     func (t *TestSum) UnmarshalInput(data []byte) error {
-//         return json.Unmarshal(data, &t.input)
-//     }
+//			if err := json.Unmarshal(data, &in); err != nil {
+//				return nil, err
+//			}
 //
-//     func (t *TestSum) Run() error {
-//         t.output.Result = t.input.A + t.input.B
-//         return nil
-//     }
+//			out.Result = in.A + in.B
 //
-//     func (t *TestSum) MarshalOutput() ([]byte, error) {
-//         return json.Marshal(t.output)
-//     }
-//
-//     // Run the test
-//
-//     func TestSumWithAgenda(t *testing.T) {
-//         agenda.Run(t, "testdata/sum", &TestSum{})
-//     }
+//			return json.Marshal(out)
+//		})
 //
 // When the test is run, it will scan "testdata/sum" directory
 // for .json files, and run the test against each of them.
@@ -164,7 +138,7 @@ func InitMode(enabled bool) option {
 // read the 01.json.result file and compare it with the current test output.
 func Run(t *testing.T, dir string, test Test, options ...option) {
 	if test == nil {
-		panic("test is nil")
+		panic("test function is nil")
 	}
 
 	opt := &optionSet{
@@ -229,13 +203,8 @@ func processFile(t *testing.T, path string, test Test, opt *optionSet) {
 		t.Fatalf("Can't read the file: %v", err)
 	}
 
-	err = test.UnmarshalInput(input)
-	if err != nil {
-		t.Fatalf("Can't unmarshal file: %v", err)
-	}
-
 	if !opt.initMode {
-		// test mode: read JSON with reference results
+		// test mode: read reference results
 
 		if _, err := os.Stat(resultPath); os.IsNotExist(err) {
 			t.Fatalf("File '%s' doesn't exist (try initializing snapshots with 'go test -args init')", resultPath)
@@ -249,17 +218,12 @@ func processFile(t *testing.T, path string, test Test, opt *optionSet) {
 
 	// perform the actual test computation
 
-	err = test.Run()
+	output, err := test(path, input)
 	if err != nil {
-		t.Errorf("Error during Run(): %v", err)
+		t.Errorf("Error during test() call: %v", err)
 	}
 
 	// marshal the result of the computation
-
-	output, err := test.MarshalOutput()
-	if err != nil {
-		t.Fatalf("Can't marshal output data: %v", err)
-	}
 
 	if !opt.initMode {
 		// test mode: compare result with the reference data
