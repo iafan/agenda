@@ -52,6 +52,13 @@ func Test01RunDefault(t *testing.T) {
 	Run(t, "testdata/01/default", test01)
 }
 
+// Test01RunWithBinarySerializer runs agenda tests with a
+// custom diff serializer (in this case, binary)
+func Test01RunWithBinarySerializer(t *testing.T) {
+	Run(t, "testdata/01/custom-serializer", test01,
+		BinarySerializer())
+}
+
 // Test01RunWithCustomFileSuffix runs tests with custom file suffix option:
 // only files ending with '.custom' will be considered as tests
 func Test01RunWithCustomFileSuffix(t *testing.T) {
@@ -66,6 +73,15 @@ func Test01RunWithCustomFileSuffix(t *testing.T) {
 func Test01RunWithCustomFileAndResultSuffix(t *testing.T) {
 	Run(t, "testdata/01/custom-file-result-suffix", test01,
 		FileSuffix(".in"), ResultSuffix(".out"))
+}
+
+// TestBinarySerializer runs agenda tests
+// to verify that binary serializer produces correct results
+func TestBinarySerializer(t *testing.T) {
+	Run(t, "testdata/binary-serializer", func(path string, data []byte) ([]byte, error) {
+		out, err := serializeBinaryData(data)
+		return []byte(out), err
+	}, FileSuffix(".result"), ResultSuffix(".serialized"))
 }
 
 // TestDirectorySnapshotRun01Default runs agenda tests

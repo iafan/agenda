@@ -1,0 +1,34 @@
+[
+	{
+		"path": "testdata/binary-serializer/1.json.result",
+		"size": 105
+	},
+	{
+		"path": "testdata/binary-serializer/1.json.result.serialized",
+		"size": 546
+	},
+	{
+		"path": "testdata/binary-serializer/2.json.result",
+		"size": 136
+	},
+	{
+		"path": "testdata/binary-serializer/2.json.result.serialized",
+		"size": 703
+	},
+	{
+		"path": "testdata/binary-serializer/3.json.result",
+		"size": 110
+	},
+	{
+		"path": "testdata/binary-serializer/3.json.result.serialized",
+		"size": 551
+	},
+	{
+		"path": "testdata/binary-serializer/4.json.result",
+		"size": 110
+	},
+	{
+		"path": "testdata/binary-serializer/4.json.result.serialized",
+		"size": 551
+	}
+]

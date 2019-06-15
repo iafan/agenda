@@ -1,0 +1,1 @@
+{"sum":4,"mul":-0,"div":0,"error":"Can't divide: C is zero","explanation":"Input parameters were: [-1, 5, 0]"}

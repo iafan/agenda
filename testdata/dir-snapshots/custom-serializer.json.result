@@ -1,0 +1,34 @@
+[
+	{
+		"path": "testdata/01/custom-serializer/1.json",
+		"size": 19
+	},
+	{
+		"path": "testdata/01/custom-serializer/1.json.result",
+		"size": 105
+	},
+	{
+		"path": "testdata/01/custom-serializer/2.json",
+		"size": 31
+	},
+	{
+		"path": "testdata/01/custom-serializer/2.json.result",
+		"size": 136
+	},
+	{
+		"path": "testdata/01/custom-serializer/3.json",
+		"size": 20
+	},
+	{
+		"path": "testdata/01/custom-serializer/3.json.result",
+		"size": 110
+	},
+	{
+		"path": "testdata/01/custom-serializer/4.json",
+		"size": 20
+	},
+	{
+		"path": "testdata/01/custom-serializer/4.json.result",
+		"size": 110
+	}
+]

@@ -29,12 +29,16 @@ package agenda
 
 import (
 	"bytes"
+	"encoding/hex"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/sqm/go-difflib/difflib"
 )
 
 // Test defines the callback function of an agenda test, which takes raw bytes
@@ -43,14 +47,27 @@ import (
 // the error in case the supporting test code encountered an unexpected behavior.
 type Test func(path string, data []byte) ([]byte, error)
 
+// StringSerializerFunc defines the callback function that is used to serialize
+// raw file byte data into a string suitable for diff-ing
+type StringSerializerFunc func(data []byte) (string, error)
+
 // optionSet is an internal structure that contains all the
 // computed options before the tests are run with Run().
 // The structure is not created or modified directly;
 // use available OptionFunc options to modify individual options.
 type optionSet struct {
-	fileSuffix   string
-	resultSuffix string
-	initMode     bool
+	fileSuffix    string
+	resultSuffix  string
+	initMode      bool
+	serializeFunc StringSerializerFunc
+}
+
+func serializeUTF8Bytes(data []byte) (string, error) {
+	return string(data), nil
+}
+
+func serializeBinaryData(data []byte) (string, error) {
+	return hex.Dump(data), nil
 }
 
 // option is a type of the function that can modify
@@ -100,6 +117,52 @@ func InitMode(enabled bool) option {
 	}
 }
 
+// Serializer allows you to specify the callback function
+// to serialize file contents into a string for diff-ing purposes.
+// Serialization is used only for reporting purposes to highlight changes
+// between the reference and actual data.
+//
+//     flag.Arg(0) == "init"
+//
+// This means that you can run `go test -args init` to initialize
+// your agenda tests, and `go test` to tun the tests in regular mode.
+//
+// Example:
+//
+// function renderFile(data []byte) (string, error) {
+//     // render data into a string structure
+//     // ...
+// }
+// agenda.Run(t, "./testdata/mytest", testFunc, agenda.Serializer(renderFile))
+func Serializer(f StringSerializerFunc) option {
+	return func(o *optionSet) {
+		o.serializeFunc = f
+	}
+}
+
+// BinarySerializer is a shortcut option that sets the binary data
+// serializer function to render diffs for binary files
+//
+// Example:
+//
+// agenda.Run(t, "./testdata/mytest", testFunc, agenda.BinarySerializer())
+func BinarySerializer() option {
+	return Serializer(serializeBinaryData)
+}
+
+// UTF8Serializer is a shortcut option that sets the UTF8 string
+// serializer function to render diffs for plain-text files.
+// It is used by default, and provided for completeness.
+//
+// Example:
+//
+// agenda.Run(t, "./testdata/mytest", testFunc, agenda.UTF8Serializer())
+// // which is equivalent to:
+// agenda.Run(t, "./testdata/mytest", testFunc)
+func UTF8Serializer() option {
+	return Serializer(serializeUTF8Bytes)
+}
+
 // Run executes an agenda test function (`test`) against all input data files
 // in the specified directory `dir`. Directory can be relative to the directory
 // you run the tests from. One or more `option`s allow you to control the behavior
@@ -142,9 +205,10 @@ func Run(t *testing.T, dir string, test Test, options ...option) {
 	}
 
 	opt := &optionSet{
-		fileSuffix:   ".json",
-		resultSuffix: ".result",
-		initMode:     flag.Arg(0) == "init",
+		fileSuffix:    ".json",
+		resultSuffix:  ".result",
+		initMode:      flag.Arg(0) == "init",
+		serializeFunc: serializeUTF8Bytes,
 	}
 
 	for _, f := range options {
@@ -227,9 +291,46 @@ func processFile(t *testing.T, path string, test Test, opt *optionSet) {
 
 	if !opt.initMode {
 		// test mode: compare result with the reference data
+		// and print the diff when the test fails
 
 		if !bytes.Equal(output, referenceOutput) {
-			t.Errorf("%s contents don't match the actual output", resultPath)
+			mainErrText := fmt.Sprintf("Reference %s contents don't match the generated output.", resultPath)
+
+			if opt.serializeFunc == nil {
+				t.Errorf("%s Also, no data serialization function provided; can't render a diff.", mainErrText)
+				return
+			}
+
+			refStr, refErr := opt.serializeFunc(referenceOutput)
+			if refErr != nil {
+				t.Errorf("%s Also, serializing reference output data failed: %v",
+					mainErrText, refErr)
+				return
+			}
+
+			outStr, outErr := opt.serializeFunc(output)
+			if outErr != nil {
+				t.Errorf("%s Also, serializing generated output data failed: %v",
+					mainErrText, outErr)
+				return
+			}
+
+			diff := difflib.UnifiedDiff{
+				A:        difflib.SplitLines(refStr),
+				B:        difflib.SplitLines(outStr),
+				FromFile: resultPath + " (reference)",
+				ToFile:   resultPath + " (generated)",
+				Context:  3,
+				Colored:  true,
+			}
+			text, err := difflib.GetUnifiedDiffString(diff)
+			if err != nil {
+				t.Errorf("%s Also, generating the diff failed: %v",
+					mainErrText, err)
+				return
+			}
+
+			t.Errorf("%s Here's the diff:\n\n%s\n", mainErrText, text)
 		}
 	} else {
 		// init mode: save reference data
