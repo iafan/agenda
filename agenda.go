@@ -38,7 +38,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sqm/go-difflib/difflib"
+	"github.com/Strum355/go-difflib/difflib"
 )
 
 // Test defines the callback function of an agenda test, which takes raw bytes
